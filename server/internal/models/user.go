@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	"database/sql"
+	"fmt"
+	"time"
+)
 
 type User struct{
 	// db schema
@@ -14,17 +18,24 @@ type User struct{
 	IsAuthed bool 
 }
 
-func create_user(email string, username string, password string){
+func CreateUser(db *sql.DB, email string, username string, password string){
 	// validate email is not in use
 	// validate username is not in use
 	// create user
+	_, err := db.Exec(`
+		INSERT INTO users (email, username, password)
+		VALUES (?, ?, ?)
+	`, email, username, password)
+	if err != nil {
+		fmt.Printf("failed to insert user: %v\n", err)
+	}
 }
 
-func get_user(username string){
+func GetUser(username string){
 	// return user data
 }
 
-func login_user(username string, password string){
+func LoginUser(username string, password string){
 	// validate username and password
 	// generate forever token 
 }

@@ -52,11 +52,11 @@ func CreateWorld(db *sqlx.DB, uid int, worldName string) (*WorldData, error) {
 	return w, nil 
 }
 
-func GetWorldData(db *sqlx.DB, id int) (*User, error){
-	u := &User{}
+func GetWorldData(db *sqlx.DB, id int) (*WorldData, error){
+	w := &WorldData{}
 
-	err:= db.Unsafe().Get(u, `
-		SELECT * FROM world_data 
+	err:= db.Unsafe().Get(w, `
+		SELECT * FROM worlddata 
 		WHERE id = ?
 		AND deleted == 0
 		LIMIT 1;
@@ -66,5 +66,5 @@ func GetWorldData(db *sqlx.DB, id int) (*User, error){
 		return nil, fmt.Errorf("failed to get world: %v", err)
 	}
 
-	return u, nil
+	return w, nil
 }

@@ -1,10 +1,11 @@
-package main 
+package main
 
 import (
 	"errors"
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"server/internal"
 	"server/internal/models"
 )
@@ -13,11 +14,11 @@ func main(){
 	appdata := internal.NewAppData()
 	internal.SetAppData(appdata)
 
-	var dbPath = "./data/local.db"
-	appdata.DBpath = &dbPath
+	rootPath := internal.GetRootDir()
+	dbPath := filepath.Join(rootPath, "data", "local.db")
 
 	// wipe old data
-	if err := os.Remove("./data/local.db"); err != nil && !errors.Is(err, os.ErrNotExist){
+	if err := os.Remove(dbPath); err != nil && !errors.Is(err, os.ErrNotExist){
 		slog.Error(fmt.Sprintf("Error removing local db file: %v", err))
 		os.Exit(1)
 	}

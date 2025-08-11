@@ -1,41 +1,76 @@
 package models
 
 import (
-	"database/sql"
 	"fmt"
 	"time"
+    "github.com/jmoiron/sqlx"
 )
 
 type User struct{
 	// db schema
-	Id int 
-	Email string
-	Username string
-	Created_at time.Time 
-	Deleted bool 
+	Id int `db:"id"`
+	Email string `db:"email"`
+	Username string `db:"username"`
+	Password string `db:"password"`
+	Created_at time.Time `db:"created_at"`
+	Deleted int `db:"deleted"`
 
 	// internal use only
 	IsAuthed bool 
 }
 
-func CreateUser(db *sql.DB, email string, username string, password string){
+func CreateUser(db *sqlx.DB, email string, username string, password string) (*User, error) {
 	// validate email is not in use
 	// validate username is not in use
 	// create user
-	_, err := db.Exec(`
+	u := &User{}
+	err := db.Get(u, `
 		INSERT INTO users (email, username, password)
 		VALUES (?, ?, ?)
+		RETURNING *;
 	`, email, username, password)
 	if err != nil {
-		fmt.Printf("failed to insert user: %v\n", err)
+		return nil, fmt.Errorf("failed to insert user: %v\n", err)
 	}
+
+	return u, nil
 }
 
-func GetUser(username string){
-	// return user data
+func GetUser(db *sqlx.DB, username string) (*User, error){
+	u := &User{}
+
+	err:= db.Unsafe().Get(u, `
+		SELECT * FROM users
+		WHERE username = ?
+		AND deleted == 0
+		LIMIT 1;
+	`, username)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user: %v", err)
+	}
+
+	return u, nil
 }
 
-func LoginUser(username string, password string){
+func LoginUser(db *sqlx.DB, username string, password string) (*string, error){
+	u := &User{}
+	err:= db.Unsafe().Get(u, `
+		SELECT * FROM users
+		WHERE username = ?
+		AND deleted == 0
+		LIMIT 1;
+	`, username)
+
+	if err != nil {
+		return nil, fmt.Errorf("user does not exist")
+	}
+
 	// validate username and password
-	// generate forever token 
+	if u.Username == username && u.Password == password {
+		// return token 
+		return nil, nil
+	}
+
+	return nil, fmt.Errorf("incorrect password")
 }
